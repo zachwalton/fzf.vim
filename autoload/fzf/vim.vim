@@ -537,6 +537,12 @@ function! s:format_buffer(b)
   return s:strip(printf("[%s] %s\t%s\t%s", s:yellow(a:b, 'Number'), flag, name, extra))
 endfunction
 
+function! s:filter_buffer(b)
+  " Only show buffers for the current project (CWD)
+  let dirname = fnamemodify(expand('#'.a:b.':p'), ":h")
+  return dirname =~ getcwd()
+endfunction
+
 function! s:sort_buffers(...)
   let [b1, b2] = map(copy(a:000), 'get(g:fzf#vim#buffers, v:val, v:val)')
   " Using minus between a float and a number in a sort function causes an error
@@ -544,7 +550,7 @@ function! s:sort_buffers(...)
 endfunction
 
 function! fzf#vim#buffers(...)
-  let bufs = map(sort(s:buflisted(), 's:sort_buffers'), 's:format_buffer(v:val)')
+  let bufs = map(sort(filter(s:buflisted(), 's:filter_buffer(v:val)'), 's:sort_buffers'), 's:format_buffer(v:val)')
 
   let [query, args] = (a:0 && type(a:1) == type('')) ?
         \ [a:1, a:000[1:]] : ['', a:000]
